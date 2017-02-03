@@ -1,6 +1,6 @@
 $(() => {
 
-	let id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
+	let id = String(window.location.pathname.match(/\/chat\/(\d+)$/));
 	let socket = io();
 	let name = "",
 		email = "",

@@ -1,4 +1,6 @@
 const gravatar = require('gravatar');
+const Hashids = require('hashids');
+const hashids = new Hashids()
 
 module.exports = (app, io) => {
 	app.get('/', (req, response) => {
@@ -7,6 +9,7 @@ module.exports = (app, io) => {
 
 	app.get('/create', (request, response) => {
 		var id = Math.round((Math.random() * 1000000));
+		id = hashids.encode(id)
 		response.redirect('/chat/'+id);
 	})
 
@@ -15,7 +18,7 @@ module.exports = (app, io) => {
 	});
 
 	let chat = io.on('connection', socket => {
-		socket.on('load',function(data){
+		socket.on('load', data => {
 			let room = findClientsSocket(io, data);
 			if(room.length === 0 ) {
 				socket.emit('peopleinchat', {number: 0});
@@ -33,7 +36,7 @@ module.exports = (app, io) => {
 			}
 		})
 
-		socket.on('login', function(data) {
+		socket.on('login', data => {
 			let room = findClientsSocket(io, data.id)
 			if (room.length < 2) {
 

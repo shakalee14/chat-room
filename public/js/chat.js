@@ -1,21 +1,13 @@
-// This file is executed in the browser, when people visit /chat/<random id>
+$(() => {
 
-$(function(){
-
-	// getting the id of the room from the url
-	var id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
-
-	// connect to the socket
-	var socket = io();
-	
-	// variables which hold the data for each person
-	var name = "",
+	let id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
+	let socket = io();
+	let name = "",
 		email = "",
 		img = "",
 		friend = "";
 
-	// cache some jQuery objects
-	var section = $(".section"),
+	let section = $(".section"),
 		footer = $("footer"),
 		onConnect = $(".connected"),
 		inviteSomebody = $(".invite-textfield"),
@@ -25,188 +17,116 @@ $(function(){
 		noMessages = $(".nomessages"),
 		tooManyPeople = $(".toomanypeople");
 
-	// some more jquery objects
-	var chatNickname = $(".nickname-chat"),
+	let chatNickname = $(".nickname-chat"),
 		leftNickname = $(".nickname-left"),
 		loginForm = $(".loginForm"),
 		yourName = $("#yourName"),
 		yourEmail = $("#yourEmail"),
-		hisName = $("#hisName"),
-		hisEmail = $("#hisEmail"),
+		yourPicture = $("#yourPicture"),
+		theirName = $("#theirName"),
+		theirEmail = $("#theirEmail"),
 		chatForm = $("#chatform"),
 		textarea = $("#message"),
 		messageTimeSent = $(".timesent"),
 		chats = $(".chats");
 
-	// these variables hold images
-	var ownerImage = $("#ownerImage"),
+	let ownerImage = $("#ownerImage"),
 		leftImage = $("#leftImage"),
 		noMessagesImage = $("#noMessagesImage");
 
-
-	// on connection to server get the id of person's room
-	socket.on('connect', function(){
-
+	socket.on('connect', () => {
 		socket.emit('load', id);
-	});
+	})
 
-	// save the gravatar url
-	socket.on('img', function(data){
+	socket.on('img', data => {
 		img = data;
-	});
+	})
 
-	// receive the names and avatars of all people in the chat room
-	socket.on('peopleinchat', function(data){
-
+	socket.on('peopleinchat', data => {
 		if(data.number === 0){
-
 			showMessage("connected");
-
-			loginForm.on('submit', function(e){
-
-				e.preventDefault();
-
+			loginForm.on('submit', event => {
+				event.preventDefault();
 				name = $.trim(yourName.val());
-				
-				if(name.length < 1){
-					alert("Please enter a nick name longer than 1 character!");
-					return;
-				}
-
 				email = yourEmail.val();
 
 				if(!isValid(email)) {
 					alert("Please enter a valid email!");
 				}
 				else {
-
 					showMessage("inviteSomebody");
-
-					// call the server-side function 'login' and send user's parameters
 					socket.emit('login', {user: name, avatar: email, id: id});
 				}
-			
+
 			});
 		}
-
 		else if(data.number === 1) {
-
 			showMessage("personinchat",data);
 
-			loginForm.on('submit', function(e){
+			loginForm.on('submit', event => {
+				event.preventDefault();
 
-				e.preventDefault();
-
-				name = $.trim(hisName.val());
-
-				if(name.length < 1){
-					alert("Please enter a nick name longer than 1 character!");
-					return;
-				}
-
-				if(name == data.user){
+				name = $.trim(theirName.val());
+				if (name == data.user){
 					alert("There already is a \"" + name + "\" in this room!");
 					return;
-				}
-				email = hisEmail.val();
-
-				if(!isValid(email)){
-					alert("Wrong e-mail format!");
-				}
-				else {
+				} else {
 					socket.emit('login', {user: name, avatar: email, id: id});
 				}
-
 			});
 		}
-
 		else {
 			showMessage("tooManyPeople");
 		}
+	})
 
-	});
-
-	// Other useful 
-
-	socket.on('startChat', function(data){
+	socket.on('startChat', (data) => {
 		console.log(data);
 		if(data.boolean && data.id == id) {
-
 			chats.empty();
-
-			if(name === data.users[0]) {
-
-				showMessage("youStartedChatWithNoMessages",data);
-			}
-			else {
-
-				showMessage("heStartedChatWithNoMessages",data);
-			}
-
+			name === data.users[0] ? showMessage("youStartedChatWithNoMessages",data) : showMessage("heStartedChatWithNoMessages",data)
 			chatNickname.text(friend);
 		}
 	});
 
-	socket.on('leave',function(data){
-
+	socket.on('leave',(data) => {
 		if(data.boolean && id==data.room){
-
 			showMessage("somebodyLeft", data);
 			chats.empty();
 		}
-
 	});
 
-	socket.on('tooMany', function(data){
-
+	socket.on('tooMany', (data) => {
 		if(data.boolean && name.length === 0) {
-
 			showMessage('tooManyPeople');
 		}
 	});
 
-	socket.on('receive', function(data){
-
+	socket.on('receive', (data) => {
 		showMessage('chatStarted');
-
 		if(data.msg.trim().length) {
 			createChatMessage(data.msg, data.user, data.img, moment());
 			scrollToBottom();
 		}
 	});
-
-	textarea.keypress(function(e){
-
-		// Submit the form on enter
-
-		if(e.which == 13) {
-			e.preventDefault();
+	textarea.keypress( event => {
+		if(event.which == 13) {
+			event.preventDefault();
 			chatForm.trigger('submit');
 		}
-
 	});
 
-	chatForm.on('submit', function(e){
-
-		e.preventDefault();
-
-		// Create a new chat message and display it directly
-
+	chatForm.on('submit', event => {
+		event.preventDefault();
 		showMessage("chatStarted");
 
 		if(textarea.val().trim().length) {
 			createChatMessage(textarea.val(), name, img, moment());
 			scrollToBottom();
-
-			// Send the message to the other person in the chat
 			socket.emit('msg', {msg: textarea.val(), user: name, img: img});
-
 		}
-		// Empty the textarea
 		textarea.val("");
 	});
-
-	// Update the relative time stamps on the chat messages every minute
 
 	setInterval(function(){
 
@@ -217,9 +137,7 @@ $(function(){
 
 	},60000);
 
-	// Function that creates a new chat message
-
-	function createChatMessage(msg,user,imgg,now){
+	function createChatMessage(msg,user,img, now){
 
 		var who = '';
 
@@ -233,14 +151,13 @@ $(function(){
 		var li = $(
 			'<li class=' + who + '>'+
 				'<div class="image">' +
-					'<img src=' + imgg + ' />' +
+					'<img src=' + img + ' />' +
 					'<b></b>' +
 					'<i class="timesent" data-time=' + now + '></i> ' +
 				'</div>' +
 				'<p></p>' +
 			'</li>');
 
-		// use the 'text' method to escape malicious user input
 		li.find('p').text(msg);
 		li.find('b').text(user);
 

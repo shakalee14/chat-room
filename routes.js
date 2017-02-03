@@ -1,22 +1,22 @@
-var gravatar = require('gravatar');
+const gravatar = require('gravatar');
 
-module.exports = function(app,io){
-	app.get('/', function(req, res){
-		res.render('home');
-	});
+module.exports = (app, io) => {
+	app.get('/', (req, response) => {
+		response.render('home')
+	})
 
-	app.get('/create', function(req,res){
+	app.get('/create', (request, response) => {
 		var id = Math.round((Math.random() * 1000000));
-		res.redirect('/chat/'+id);
+		response.redirect('/chat/'+id);
+	})
+
+	app.get('/chat/:id', (request, response) => {
+		response.render('chat');
 	});
 
-	app.get('/chat/:id', function(req,res){
-		res.render('chat');
-	});
-
-	var chat = io.on('connection', function (socket) {
+	let chat = io.on('connection', socket => {
 		socket.on('load',function(data){
-			var room = findClientsSocket(io,data);
+			let room = findClientsSocket(io, data);
 			if(room.length === 0 ) {
 				socket.emit('peopleinchat', {number: 0});
 			}
@@ -26,29 +26,28 @@ module.exports = function(app,io){
 					user: room[0].username,
 					avatar: room[0].avatar,
 					id: data
-				});
+				})
 			}
 			else if(room.length >= 2) {
-				chat.emit('tooMany', {boolean: true});
+				chat.emit('tooMany', {boolean: true})
 			}
-		});
+		})
 
 		socket.on('login', function(data) {
-
-			var room = findClientsSocket(io, data.id);
+			let room = findClientsSocket(io, data.id)
 			if (room.length < 2) {
 
-				socket.username = data.user;
-				socket.room = data.id;
-				socket.avatar = gravatar.url(data.avatar, {s: '140', r: 'x', d: 'mm'});
+				socket.username = data.user
+				socket.room = data.id
+				socket.avatar = gravatar.url(data.avatar, {s: '140', r: 'x', d: 'mm'})
 
-				socket.emit('img', socket.avatar);
-				socket.join(data.id);
+				socket.emit('img', socket.avatar)
+				socket.join(data.id)
 
 				if (room.length == 1) {
 
-					var usernames = [],
-						avatars = [];
+					let usernames = []
+					let avatars = [];
 
 					usernames.push(room[0].username);
 					usernames.push(socket.username);
@@ -69,7 +68,7 @@ module.exports = function(app,io){
 			}
 		});
 
-		socket.on('disconnect', function() {
+		socket.on('disconnect', () => {
 
 			socket.broadcast.to(this.room).emit('leave', {
 				boolean: true,
@@ -81,14 +80,14 @@ module.exports = function(app,io){
 			socket.leave(socket.room);
 		});
 
-		socket.on('msg', function(data){
+		socket.on('msg', data => {
 			socket.broadcast.to(socket.room).emit('receive', {msg: data.msg, user: data.user, img: data.img});
 		});
 	});
 };
 
 function findClientsSocket(io,roomId, namespace) {
-	var res = [],
+	var response = [],
 		ns = io.of(namespace ||"/");    // the default namespace is "/"
 
 	if (ns) {
@@ -96,13 +95,13 @@ function findClientsSocket(io,roomId, namespace) {
 			if(roomId) {
 				var index = ns.connected[id].rooms.indexOf(roomId) ;
 				if(index !== -1) {
-					res.push(ns.connected[id]);
+					response.push(ns.connected[id]);
 				}
 			}
 			else {
-				res.push(ns.connected[id]);
+				response.push(ns.connected[id]);
 			}
 		}
 	}
-	return res;
+	return response;
 }

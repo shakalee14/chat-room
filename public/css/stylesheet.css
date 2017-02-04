@@ -116,14 +116,13 @@ header {
 }
 
 .connected {
-	text-align:center;
-	display: block;
+	display: flex;
+	justify-content: center;
 	margin:0px auto;
 	width: 700px;
 	height: 400px;
 	background-color: #ffffff;
-	border-radius: 3px;
-	color: #637277;
+	color: #292E37;
 }
 .connected h2 {
 	padding-top: 20px;
@@ -149,10 +148,9 @@ header {
 #yourName, #theirName {
 	float:left;
 	padding-left:10px;
-	width: 150px;
+	width: 200px;
 	height: 30px;
 	border-radius: 2px;
-	background-color: #f0f1f3;
 	border: 1px solid #d1d1d1;
 	margin-bottom:20px;
 	overflow: hidden;
@@ -164,7 +162,6 @@ header {
 	width: 200px;
 	height: 30px;
 	border-radius: 2px;
-	background-color: #f0f1f3;
 	border: 1px solid #d1d1d1;
 	margin-bottom: 20px;
 }
@@ -175,7 +172,6 @@ header {
 	width: 200px;
 	height: 30px;
 	border-radius: 2px;
-	background-color: #f0f1f3;
 	border: 1px solid #d1d1d1;
 	margin-bottom: 20px;
 }
@@ -197,6 +193,10 @@ header {
 	width: 112px;
 	height: 40px;
 	opacity: 0.75;
+}
+
+.flipped {
+	transform: rotate(180deg);
 }
 
 .personinside {
@@ -519,6 +519,8 @@ footer {
 
 .connected {
 	display: none;
+	border-top: 1px black solid;
+	border-bottom: 1px black solid;
 }
 
 .personinside {
